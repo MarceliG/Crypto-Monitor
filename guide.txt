@@ -1,0 +1,25 @@
+1 stopień aplikacji
+    - pierwsz pobranie BTC pobiera wszystkie dane i zapisuje to bazie danych.
+        - kolejne pobieranie BTC z internetu (co pewnien czas np co 1s)
+            sprawdzenie czy pobrana wartość różni się od aktualnej.
+            Możliwy przypadek, że aplikacja będzie pobierać częściej dane niż akcje
+            na giełdzie będą faktycznie aktualizwane
+    - rysowanie wykresu gdy aplikacja pobierze nowe dene - czyli rysowania co 1s
+    - narysowanie 2 lub 3 średnich kroczących(ruchomych), na przecięciu wykresów 
+        powinno kupić/sprzedać akcje
+
+
+
+2 stopień aplikacji
+Rozój aplikacji
+    - stworzenie portfela (aktualna kwota, historia zakupu sprzedaży)
+    - rysowanie na osobnym wykresie historii portfela
+    - możliwość kupowania/sprzedawania - samodzielnie
+    - stworzyć bota, którzy będzie kupował/sprzedawał akcje - możliwość włączenia/wyłącznia
+
+
+3 stpień aplikacji
+    - bot będzie się uczyć na kiedy warto a kiedy nie warto kupować sprzedawać
+        analiza na podstawie historii akcji oraz historii portfela 
+
+

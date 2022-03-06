@@ -29,19 +29,19 @@ class DataMonitor():
             "Accepts": "application/json",
             "X-CMC_PRO_API_KEY": "8a6e024e-4ad6-4ed6-a43e-0bf97b6327cf"
         }
-        
+        # self.btcFrame = pd.DataFrame([],columns=['time', 'value'])
+        self.btcFrame = pd.DataFrame({'time': [], 'value': []})
 
-    def GetHistoricalData(self, crypto = 'BTC-USD', period= "1d", interval='5m'):
+    def GetHistoricalData(self, crypto='BTC-USD', period="1d", interval='5m'):
         # Get Historical crypto data
         self.data = yf.download(
             tickers=crypto, period=period, interval=interval)   # get last day
         return self.data
 
     def GetCurrentData(self):
-        price = self.GetActualPrice()
-        time = self.GetActualTime()
-        self.btc_current[time] = price
-        return self.btc_current
+        newData = pd.DataFrame({'time': [self.GetActualTime()], 'value': [self.GetActualPrice()]})
+        self.btcFrame = self.btcFrame.append(newData, ignore_index=True)
+        return self.btcFrame
 
     def GetActualPrice(self):
 
@@ -51,7 +51,7 @@ class DataMonitor():
         response = session.get(URL, params=self.parameters)
         # pprint.pprint(json.loads(response.text)['data'])
         return json.loads(response.text)[
-                      'data']['1']['quote']['PLN']['price']
+            'data']['1']['quote']['PLN']['price']
 
     def GetActualTime(self):
         t = time.localtime()

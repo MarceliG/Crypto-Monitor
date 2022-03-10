@@ -16,6 +16,7 @@ import yfinance as yf
 
 # Graph
 import plotly
+import plotly.express as px
 import plotly.graph_objs as go
 
 from collections import deque
@@ -28,15 +29,16 @@ X.append(1)
 Y = deque(maxlen=20)
 Y.append(1)
 
+# get data
+btcFrame = DataMonitor().GetCurrentData()
 # App layout
 app = dash.Dash(__name__)
 app.title = "Crypto Monitor"
-btcFrame = DataMonitor().GetCurrentData()
 app.layout = html.Div([
     # dcc.Dropdown(['NYC', 'MTL', 'SF'], 'NYC', id='demo-dropdown'),
     # html.Div(id='dd-output-container'),
 
-    dcc.Graph(id='live-graph', animate=True),
+    dcc.Graph(id='live-graph', figure={}, animate=True),
     dcc.Interval(id='graph-update',
                  interval=1000),
 ])
@@ -44,8 +46,8 @@ app.layout = html.Div([
 
 @app.callback(
     # Output('dd-output-container', 'children'),
-    Output('live-graph', 'figure'),
-    Input('graph-update', 'interval'),
+    # Output('live-graph', 'figure'),
+    # Input('graph-update', 'interval'),
     # Input('demo-dropdown', 'value')
 )
 # def update_output(value):
@@ -57,8 +59,8 @@ def update_graph_scatter(n):
     # print(btcFrame)
     # print('X:', X, 'Y:', Y)
 
-    X.append(X[-1]+1)
-    Y.append(Y[-1]+Y[-1]*random.uniform(-0.1, 0.1))
+    X = X.append(X[-1]+1)
+    Y = Y.append(Y[-1]+Y[-1]*random.uniform(-0.1, 0.1))
     print(X)
     print(Y)
 
@@ -71,25 +73,5 @@ def update_graph_scatter(n):
     return {'data': [data],
             'layout': go.Layout(xaxis=dict(range=[min(X), max(X)]), yaxis=dict(range=[min(Y), max(Y)]),)}
 
-# def main():
-#     # Get Bitcoin data
-#     data_bitcoin = DataMonitor()
-#     print(type(data_bitcoin.data_all))
-#     data_BTC = data_bitcoin.GetHistoricalData('BTC-USD', '1y', '1d')
-#     # print(data_BTC)
-
-#     i = 0
-#     while i < 5:
-#         btc = data_bitcoin.GetActualPrice()
-#         # print(btc)
-#         i += 1
-#         time.sleep(1)
-#         print(data_bitcoin.GetCurrentData())
-
-#     # Plot().figure(data_BTC)
-#     # Plot().testFigure()
-
-
 if __name__ == "__main__":
-    # main()
     app.run_server(debug=True)

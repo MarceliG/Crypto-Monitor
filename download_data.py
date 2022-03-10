@@ -1,59 +1,102 @@
+"""Download crypto data as dataFrame."""
 
 # Data Source
 import yfinance as yf
 
-from requests import Request, Session
+from requests import Session
 import json
-import pprint
 import time
 
 # Format data
 import pandas as pd
 
-URL = 'https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest'
+URL = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
+
+PARAMETERS = {"slug": "bitcoin", "convert": "USD"}
+HEDERS = {
+    "Accepts": "application/json",
+    "X-CMC_PRO_API_KEY": "8a6e024e-4ad6-4ed6-a43e-0bf97b6327cf",
+}
 
 
-class DataMonitor():
+class DataMonitor:
+    """The object has crypto data."""
+
     def __init__(self):
-        self.data_all: pd.core.frame.DataFrame = yf.download(
-            tickers='BTC-USD', period='max', interval='1d')    # get all graph
-        self.data_last_day: pd.core.frame.DataFrame
-
-        self.btc_current = {}
+        """Initialize."""
 
         # ########
-        self.parameters = {
-            "slug": "bitcoin",
-            "convert": "PLN"}
-        self.heders = {
-            "Accepts": "application/json",
-            "X-CMC_PRO_API_KEY": "8a6e024e-4ad6-4ed6-a43e-0bf97b6327cf"
-        }
         # self.btcFrame = pd.DataFrame([],columns=['time', 'value'])
-        self.btcFrame = pd.DataFrame({'time': [], 'value': []})
+        self.btcFrame = pd.DataFrame({"time": [], "value": []})
 
-    def GetHistoricalData(self, crypto='BTC-USD', period="1d", interval='5m'):
-        # Get Historical crypto data
-        self.data = yf.download(
-            tickers=crypto, period=period, interval=interval)   # get last day
-        return self.data
+    def GetHistoricalData(
+        self, crypto="BTC-USD", period="max", interval="1d", startData="2021-01-01"
+    ):
+        """Get Historical crypto data.
+
+        Args:
+            crypto: name of cash.
+            period: when to start downloading data.
+            intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo.
+
+        Returns:
+            cryptoFrame: dataFrame.
+
+        """
+        allData = yf.download(
+            tickers=crypto,
+            period=period,
+            interval=interval,
+            start=startData,
+        )
+
+        # self.addMovingAverages(20, 5)
+
+        return allData
+
+    def addMovingAverages(self, dataFrame, *movingAverages: int):
+        """Add to dataFrame new column with moving average."""
+
+        for average in movingAverages:
+            self.allData["MA" + str(average)] = (
+                self.allData["Close"].rolling(window=average).mean()
+            )
+        # data["MA20"] = data["Close"].rolling(window=20).mean()
+        # data["MA5"] = data["Close"].rolling(window=5).mean()
 
     def GetCurrentData(self):
-        newData = pd.DataFrame({'time': [self.GetActualTime()], 'value': [self.GetActualPrice()]})
+        """Return frame with 2 columns, date and value.
+
+        Returns:
+            frame: frame with date and BTC-USD
+        """
+        newData = pd.DataFrame(
+            {"time": [self.GetActualTime()], "value": [self.GetActualPrice()]}
+        )
         self.btcFrame = self.btcFrame.append(newData, ignore_index=True)
         return self.btcFrame
 
     def GetActualPrice(self):
+        """Return actual price.
+
+        Returns:
+            price
+        """
 
         session = Session()
-        session.headers.update(self.heders)
+        session.headers.update(HEDERS)
 
-        response = session.get(URL, params=self.parameters)
+        response = session.get(URL, params=PARAMETERS)
         # pprint.pprint(json.loads(response.text)['data'])
-        return json.loads(response.text)[
-            'data']['1']['quote']['PLN']['price']
+        return json.loads(response.text)["data"]["1"]["quote"]["USD"]["price"]
 
     def GetActualTime(self):
+        """Return actual time.
+
+        Returns:
+            time
+        """
+
         t = time.localtime()
         current_time = time.strftime("%H:%M:%S", t)
         return current_time

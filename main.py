@@ -1,77 +1,113 @@
+"""Main app."""
 from download_data import DataMonitor
-from draw_plot import Plot
-
-# Raw Package
-import numpy as np
-import pandas as pd
-import time
 
 # Web package
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 
-# Data Source
-import yfinance as yf
-
 # Graph
-import plotly
-import plotly.express as px
 import plotly.graph_objs as go
 
-from collections import deque
-import random
 
-
-# start app
-X = deque(maxlen=20)
-X.append(1)
-Y = deque(maxlen=20)
-Y.append(1)
-
-# get data
-btcFrame = DataMonitor().GetCurrentData()
-# App layout
 app = dash.Dash(__name__)
 app.title = "Crypto Monitor"
-app.layout = html.Div([
-    # dcc.Dropdown(['NYC', 'MTL', 'SF'], 'NYC', id='demo-dropdown'),
-    # html.Div(id='dd-output-container'),
-
-    dcc.Graph(id='live-graph', figure={}, animate=True),
-    dcc.Interval(id='graph-update',
-                 interval=1000),
-])
-
-
-@app.callback(
-    # Output('dd-output-container', 'children'),
-    # Output('live-graph', 'figure'),
-    # Input('graph-update', 'interval'),
-    # Input('demo-dropdown', 'value')
+app.layout = html.Div(
+    [
+        html.H1(
+            "My really simple app",
+            style={"color": "green", "fontSize": 40, "textAlign": "center"},
+        ),
+        html.H1(
+            "Crypto Monitor",
+            style={"color": "orange", "fontSize": 30, "textAlign": "center"},
+        ),
+        html.Div(
+            [
+                # Label above dropdown
+                html.Label(["Select crypto"]),
+                # Dropdown
+                dcc.Dropdown(
+                    id="dropdownCrypto",
+                    options=[
+                        {"label": "Bitcoin - BTC", "value": "BTC-USD"},
+                        {"label": "Etherium - ETH", "value": "ETH-USD"},
+                        {"label": "Litecoin - LTC", "value": "LTC-USD"},
+                        {"label": "Stellar - XLM", "value": "XLM-USD"},
+                    ],
+                    value="BTC-USD",
+                    multi=False,
+                    clearable=False,
+                    style={"width": "50%"},
+                ),
+            ]
+        ),
+        # Graph
+        html.Div(
+            [
+                dcc.Graph(id="graphCrypto"),
+            ]
+        ),
+    ]
 )
-# def update_output(value):
-# if many outputs, add then to return
-# return f'You have selected {value}'
-def update_graph_scatter(n):
-    # X = X.append(btcFrame['time'].iloc[-1])
-    # Y = Y.append(btcFrame['value'].iloc[-1])
-    # print(btcFrame)
-    # print('X:', X, 'Y:', Y)
 
-    X = X.append(X[-1]+1)
-    Y = Y.append(Y[-1]+Y[-1]*random.uniform(-0.1, 0.1))
-    print(X)
-    print(Y)
 
-    data = plotly.graph_objs.Scatter(
-        x=list(X),
-        y=list(Y),
-        name='Scatter',
-        mode='lines+markers'
+# ----------------------------------------
+@app.callback(
+    Output(component_id="graphCrypto", component_property="figure"),
+    [Input(component_id="dropdownCrypto", component_property="value")],
+)
+# The function argument refers to the input
+def update_graph(dropdownCrypto):
+    """Return crypto graph.
+
+    Args:
+        dropdownCrypto: Input on dropdown.
+
+    """
+    historicalCryptoFrame = DataMonitor().GetHistoricalData(
+        crypto=dropdownCrypto, period="max"
     )
-    return {'data': [data],
-            'layout': go.Layout(xaxis=dict(range=[min(X), max(X)]), yaxis=dict(range=[min(Y), max(Y)]),)}
+
+    fig = go.Figure(
+        data=[
+            go.Candlestick(
+                x=historicalCryptoFrame.index,
+                open=historicalCryptoFrame["Open"],
+                high=historicalCryptoFrame["High"],
+                low=historicalCryptoFrame["Low"],
+                close=historicalCryptoFrame["Close"],
+            )
+        ]
+    )
+
+    fig.update_layout(
+        # Add titles
+        title="Crypto price evolution",
+        yaxis_title="Price (US Dollars)",
+        xaxis_title="date",
+    )
+
+    # X-Axes
+    fig.update_xaxes(
+        # removing rangeslider
+        rangeslider_visible=False,
+        # hide weekends and gaps
+        rangebreaks=[dict(bounds=["sat", "mon"])],
+        rangeselector=dict(
+            buttons=list(
+                [
+                    dict(count=1, label="1 month", step="month", stepmode="backward"),
+                    dict(count=1, label="1 year", step="year", stepmode="backward"),
+                    # dict(count=1, label="1 h", step="hour", stepmode="todate"),
+                    # dict(count=6, label="6 h", step="hour", stepmode="backward"),
+                    dict(step="all"),
+                ]
+            )
+        ),
+    )
+    return fig
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)

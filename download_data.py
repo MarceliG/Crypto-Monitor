@@ -25,7 +25,6 @@ class DataMonitor:
     def __init__(self):
         """Initialize."""
 
-        # ########
         # self.btcFrame = pd.DataFrame([],columns=['time', 'value'])
         self.btcFrame = pd.DataFrame({"time": [], "value": []})
 
@@ -36,7 +35,8 @@ class DataMonitor:
 
         Args:
             crypto: name of cash.
-            period: when to start downloading data.
+            period: when to start downloading data. 1d, 5d, 1mo, 3mo, 6mo,
+            1y, 2y, 5y, 10y, ytd, max
             intervals: 1m,2m,5m,15m,30m,60m,90m,1h,1d,5d,1wk,1mo,3mo.
 
         Returns:

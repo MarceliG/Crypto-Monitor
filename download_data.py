@@ -28,9 +28,7 @@ class DataMonitor:
         # self.btcFrame = pd.DataFrame([],columns=['time', 'value'])
         self.btcFrame = pd.DataFrame({"time": [], "value": []})
 
-    def GetHistoricalData(
-        self, crypto="BTC-USD", period="max", interval="1d", startData="2021-01-01"
-    ):
+    def GetHistoricalData(self, crypto="BTC-USD", period="max", interval="1d"):
         """Get Historical crypto data.
 
         Args:
@@ -47,7 +45,6 @@ class DataMonitor:
             tickers=crypto,
             period=period,
             interval=interval,
-            start=startData,
         )
 
         # self.addMovingAverages(20, 5)

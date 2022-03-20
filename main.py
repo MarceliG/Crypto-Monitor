@@ -1,5 +1,6 @@
 """Main app."""
 from download_data import DataMonitor
+from Enum_Time import PeriodEnum, IntervalEnum
 
 # Web package
 import dash
@@ -78,19 +79,7 @@ app.layout = html.Div(
                 ),
                 dcc.Slider(
                     step=None,
-                    marks={
-                        0: "1 day",
-                        1: "5 days",
-                        2: "1 month",
-                        3: "3 months",
-                        4: "6 months",
-                        5: "year to date",
-                        6: "1 year",
-                        7: "2 years",
-                        8: "5 years",
-                        9: "10 years",
-                        10: "maximum",
-                    },
+                    marks={k: value.full_name for k, value in enumerate(PeriodEnum)},
                     value=5,
                     id="sliderPeriod",
                 ),
@@ -105,21 +94,7 @@ app.layout = html.Div(
                 ),
                 dcc.Slider(
                     step=None,
-                    marks={
-                        0: "1 minute",
-                        1: "2 minute",
-                        2: "5 minute",
-                        3: "15 minute",
-                        4: "30 minute",
-                        5: "60 minute",
-                        6: "90 minute",
-                        7: "1 hour",
-                        8: "1 day",
-                        9: "5 day",
-                        10: "1 week",
-                        11: "1 month",
-                        12: "3 month",
-                    },
+                    marks={k: value.full_name for k, value in enumerate(IntervalEnum)},
                     value=8,
                     id="sliderInterval",
                 ),
@@ -208,59 +183,13 @@ def update_graph(
     )
     ####################
 
-    # TODO ENUM
-    if sliderPeriod == 0:
-        chosePeriod = "1d"
-    elif sliderPeriod == 1:
-        chosePeriod = "5d"
-    elif sliderPeriod == 2:
-        chosePeriod = "1m"
-    elif sliderPeriod == 3:
-        chosePeriod = "3m"
-    elif sliderPeriod == 4:
-        chosePeriod = "6m"
-    elif sliderPeriod == 5:
-        chosePeriod = "1y"
-    elif sliderPeriod == 6:
-        chosePeriod = "2y"
-    elif sliderPeriod == 7:
-        chosePeriod = "5y"
-    elif sliderPeriod == 8:
-        chosePeriod = "10y"
-    elif sliderPeriod == 9:
-        chosePeriod = "ytd"
-    elif sliderPeriod == 10:
-        chosePeriod = "max"
-
-    if sliderInterval == 0:
-        choseInterval = "1m"
-    elif sliderInterval == 1:
-        choseInterval = "2m"
-    elif sliderInterval == 2:
-        choseInterval = "5m"
-    elif sliderInterval == 3:
-        choseInterval = "15m"
-    elif sliderInterval == 4:
-        choseInterval = "30m"
-    elif sliderInterval == 5:
-        choseInterval = "60m"
-    elif sliderInterval == 6:
-        choseInterval = "90m"
-    elif sliderInterval == 7:
-        choseInterval = "1h"
-    elif sliderInterval == 8:
-        choseInterval = "1d"
-    elif sliderInterval == 9:
-        choseInterval = "5d"
-    elif sliderInterval == 10:
-        choseInterval = "1wk"
-    elif sliderInterval == 11:
-        choseInterval = "1mo"
-    elif sliderInterval == 12:
-        choseInterval = "3mo"
+    short_period = {k: value.short_name for k, value in enumerate(PeriodEnum)}
+    chose_period = short_period[sliderPeriod]
+    short_interval = {k: value.short_name for k, value in enumerate(IntervalEnum)}
+    chose_interval = short_interval[sliderInterval]
 
     historicalCryptoFrame = DataMonitor().GetHistoricalData(
-        crypto=dropdownCrypto, period=chosePeriod, interval=choseInterval
+        crypto=dropdownCrypto, period=chose_period, interval=chose_interval
     )
 
     figureCryptoEvolution = go.Figure(

@@ -25,7 +25,6 @@ class DataMonitor:
     def __init__(self):
         """Initialize."""
 
-        # self.btcFrame = pd.DataFrame([],columns=['time', 'value'])
         self.btcFrame = pd.DataFrame({"time": [], "value": []})
 
     def GetHistoricalData(self, crypto="BTC-USD", period="max", interval="1d"):
@@ -67,6 +66,7 @@ class DataMonitor:
         Returns:
             frame: frame with date and BTC-USD
         """
+        #TODO add series
         newData = pd.DataFrame(
             {"time": [self.GetActualTime()], "value": [self.GetActualPrice()]}
         )

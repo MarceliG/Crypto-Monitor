@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output
 # Graph
 import plotly.graph_objs as go
 
+actualPrice = DataMonitor()
 
 app = dash.Dash(__name__)
 app.title = "Crypto Monitor"
@@ -17,8 +18,32 @@ app.layout = html.Div(
         # title
         html.H1(
             "Crypto Monitor",
-            style={"color": "green", "fontSize": 40, "textAlign": "center"},
+            style={
+                "color": "green",
+                "fontSize": 40,
+                "textAlign": "center",
+            },
         ),
+        #######
+        html.Div(
+            [
+                html.H6(
+                    "Live Bitcoin graph",
+                    style={
+                        "color": "black",
+                        "fontSize": 20,
+                        "textAlign": "left",
+                    },
+                ),
+                dcc.Graph(id="graphLive"),
+                dcc.Interval(
+                    id="intervalComponent",
+                    interval=10 * 1000,  # in milliseconds
+                    n_intervals=0,
+                ),
+            ],
+        ),
+        #######
         # dropdown
         html.Div(
             [
@@ -38,55 +63,67 @@ app.layout = html.Div(
                     clearable=False,
                     style={"width": "50%"},
                 ),
-            ]
+            ],
         ),
         # slider period
-        html.H6(
-            "Period",
-            style={"color": "black", "fontSize": 20, "textAlign": "left"},
-        ),
-        dcc.Slider(
-            step=None,
-            marks={
-                0: "1 day",
-                1: "5 days",
-                2: "1 month",
-                3: "3 months",
-                4: "6 months",
-                5: "year to date",
-                6: "1 year",
-                7: "2 years",
-                8: "5 years",
-                9: "10 years",
-                10: "maximum",
-            },
-            value=5,
-            id="sliderPeriod",
-        ),
-        # slider interval
-        html.H6(
-            "Interval",
-            style={"color": "black", "fontSize": 20, "textAlign": "left"},
-        ),
-        dcc.Slider(
-            step=None,
-            marks={
-                0: "1 minute",
-                1: "2 minute",
-                2: "5 minute",
-                3: "15 minute",
-                4: "30 minute",
-                5: "60 minute",
-                6: "90 minute",
-                7: "1 hour",
-                8: "1 day",
-                9: "5 day",
-                10: "1 week",
-                11: "1 month",
-                12: "3 month",
-            },
-            value=8,
-            id="sliderInterval",
+        html.Div(
+            [
+                html.H6(
+                    "Period",
+                    style={
+                        "color": "black",
+                        "fontSize": 20,
+                        "textAlign": "left",
+                    },
+                ),
+                dcc.Slider(
+                    step=None,
+                    marks={
+                        0: "1 day",
+                        1: "5 days",
+                        2: "1 month",
+                        3: "3 months",
+                        4: "6 months",
+                        5: "year to date",
+                        6: "1 year",
+                        7: "2 years",
+                        8: "5 years",
+                        9: "10 years",
+                        10: "maximum",
+                    },
+                    value=5,
+                    id="sliderPeriod",
+                ),
+                # slider interval
+                html.H6(
+                    "Interval",
+                    style={
+                        "color": "black",
+                        "fontSize": 20,
+                        "textAlign": "left",
+                    },
+                ),
+                dcc.Slider(
+                    step=None,
+                    marks={
+                        0: "1 minute",
+                        1: "2 minute",
+                        2: "5 minute",
+                        3: "15 minute",
+                        4: "30 minute",
+                        5: "60 minute",
+                        6: "90 minute",
+                        7: "1 hour",
+                        8: "1 day",
+                        9: "5 day",
+                        10: "1 week",
+                        11: "1 month",
+                        12: "3 month",
+                    },
+                    value=8,
+                    id="sliderInterval",
+                ),
+            ]
         ),
         # Graph
         html.Div(
@@ -100,21 +137,78 @@ app.layout = html.Div(
 
 # ----------------------------------------
 @app.callback(
-    Output(component_id="graphCrypto", component_property="figure"),
     [
-        Input(component_id="dropdownCrypto", component_property="value"),
-        Input(component_id="sliderPeriod", component_property="value"),
-        Input(component_id="sliderInterval", component_property="value"),
+        Output(
+            component_id="graphLive",
+            component_property="figure",
+        ),
+        Output(
+            component_id="graphCrypto",
+            component_property="figure",
+        ),
+    ],
+    [
+        Input(
+            component_id="intervalComponent",
+            component_property="n_intervals",
+        ),
+        Input(
+            component_id="dropdownCrypto",
+            component_property="value",
+        ),
+        Input(
+            component_id="sliderPeriod",
+            component_property="value",
+        ),
+        Input(
+            component_id="sliderInterval",
+            component_property="value",
+        ),
     ],
 )
 # The function argument refers to the input
-def update_graph(dropdownCrypto, sliderPeriod, sliderInterval):
+def update_graph(
+    intervalComponent,
+    dropdownCrypto,
+    sliderPeriod,
+    sliderInterval,
+):
     """Return crypto graph.
 
     Args:
+        intervalComponent: The time that determines how quickly the page
+        will refresh.
         dropdownCrypto: Input on dropdown.
-
+        sliderPeriod: Chosen period historical graph.
+        sliderInterval: Chosen interval historical graph.
     """
+
+    actualPrice.GetCurrentData()
+
+    figureCryptoLive = go.Figure(
+        data=[
+            go.Scatter(
+                x=actualPrice.btcFrame["time"],
+                y=actualPrice.btcFrame["value"],
+                mode="lines+markers",
+                line=dict(
+                    color="green",
+                    width=2,
+                ),
+            ),
+        ]
+    )
+
+    figureCryptoLive.update_layout(
+        # Add titles
+        title="BTC live updates every 10s",
+        yaxis_title="Price (US Dollars)",
+        xaxis_title="time",
+        autosize=True,
+    )
+    ####################
+
+    # TODO ENUM
     if sliderPeriod == 0:
         chosePeriod = "1d"
     elif sliderPeriod == 1:
@@ -165,13 +259,11 @@ def update_graph(dropdownCrypto, sliderPeriod, sliderInterval):
     elif sliderInterval == 12:
         choseInterval = "3mo"
 
-    # print(sliderPeriod)
-    # print(chosePeriod)
     historicalCryptoFrame = DataMonitor().GetHistoricalData(
         crypto=dropdownCrypto, period=chosePeriod, interval=choseInterval
     )
 
-    fig = go.Figure(
+    figureCryptoEvolution = go.Figure(
         data=[
             go.Candlestick(
                 x=historicalCryptoFrame.index,
@@ -179,11 +271,11 @@ def update_graph(dropdownCrypto, sliderPeriod, sliderInterval):
                 high=historicalCryptoFrame["High"],
                 low=historicalCryptoFrame["Low"],
                 close=historicalCryptoFrame["Close"],
-            )
+            ),
         ]
     )
 
-    fig.update_layout(
+    figureCryptoEvolution.update_layout(
         # Add titles
         title="Crypto price evolution",
         yaxis_title="Price (US Dollars)",
@@ -191,22 +283,30 @@ def update_graph(dropdownCrypto, sliderPeriod, sliderInterval):
     )
 
     # X-Axes
-    fig.update_xaxes(
+    figureCryptoEvolution.update_xaxes(
         # removing rangeslider
         rangeslider_visible=False,
         rangeselector=dict(
             buttons=list(
                 [
-                    dict(count=1, label="1 month", step="month", stepmode="backward"),
-                    dict(count=1, label="1 year", step="year", stepmode="backward"),
-                    # dict(count=1, label="1 h", step="hour", stepmode="todate"),
-                    # dict(count=6, label="6 h", step="hour", stepmode="backward"),
+                    dict(
+                        count=1,
+                        label="1 month",
+                        step="month",
+                        stepmode="backward",
+                    ),
+                    dict(
+                        count=1,
+                        label="1 year",
+                        step="year",
+                        stepmode="backward",
+                    ),
                     dict(step="all"),
                 ]
             )
         ),
     )
-    return fig
+    return figureCryptoLive, figureCryptoEvolution
 
 
 if __name__ == "__main__":

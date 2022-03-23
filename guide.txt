@@ -6,9 +6,9 @@ What the application has now:
 
 In the future app will has:
     - 2 or more moving average (multiple subplot).
+
+    - To do a fake wallet and abillity to buy/sell crypto. 
+    - To do dataFrame with tranzaction
+
     - Better looking app.
-
-    - make a fake wallet and abillity to buy/sell crypto. 
-    - make dataFrame with tranzaction
-
 

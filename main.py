@@ -163,8 +163,8 @@ def update_graph(
     figureCryptoLive = go.Figure(
         data=[
             go.Scatter(
-                x=actualPrice.btcFrame["time"],
-                y=actualPrice.btcFrame["value"],
+                x=actualPrice.btc_current_Frame["time"],
+                y=actualPrice.btc_current_Frame["value"],
                 mode="lines+markers",
                 line=dict(
                     color="green",

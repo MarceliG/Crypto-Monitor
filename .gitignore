@@ -3,3 +3,5 @@ __pycache__
 venv
 .vscode
 tests.py
+# Password to web
+Coin_Market.py 

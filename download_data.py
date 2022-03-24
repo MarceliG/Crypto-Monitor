@@ -1,5 +1,7 @@
 """Download crypto data as dataFrame."""
 
+from Coin_Market import CoinMarket
+
 # Data Source
 import yfinance as yf
 
@@ -10,13 +12,14 @@ import time
 # Format data
 import pandas as pd
 
-URL = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
+# URL = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
 
-PARAMETERS = {"slug": "bitcoin", "convert": "USD"}
-HEDERS = {
-    "Accepts": "application/json",
-    "X-CMC_PRO_API_KEY": "8a6e024e-4ad6-4ed6-a43e-0bf97b6327cf",
-}
+# PARAMETERS = {"slug": "bitcoin", "convert": "USD"}
+# HEDERS = {
+#     "Accepts": "application/json",
+#     "X-CMC_PRO_API_KEY": "8a6e024e-4ad6-4ed6-a43e-0bf97b6327cf",
+# }
+coin_market = CoinMarket()
 
 
 class DataMonitor:
@@ -84,9 +87,9 @@ class DataMonitor:
         """
 
         session = Session()
-        session.headers.update(HEDERS)
+        session.headers.update(coin_market.HEDERS)
 
-        response = session.get(URL, params=PARAMETERS)
+        response = session.get(coin_market.URL, params=coin_market.PARAMETERS)
         # pprint.pprint(json.loads(response.text)['data'])
         return json.loads(response.text)["data"]["1"]["quote"]["USD"]["price"]
 

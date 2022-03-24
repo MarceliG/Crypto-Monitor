@@ -10,7 +10,7 @@ from dash.dependencies import Input, Output
 # Graph
 import plotly.graph_objs as go
 
-actualPrice = DataMonitor()
+actual_price = DataMonitor()
 
 app = dash.Dash(__name__)
 app.title = "Crypto Monitor"
@@ -36,9 +36,9 @@ app.layout = html.Div(
                         "textAlign": "left",
                     },
                 ),
-                dcc.Graph(id="graphLive"),
+                dcc.Graph(id="graph_live"),
                 dcc.Interval(
-                    id="intervalComponent",
+                    id="interval_component",
                     interval=10 * 1000,  # in milliseconds
                     n_intervals=0,
                 ),
@@ -52,7 +52,7 @@ app.layout = html.Div(
                 html.Label(["Select crypto"]),
                 # Dropdown
                 dcc.Dropdown(
-                    id="dropdownCrypto",
+                    id="dropdown_crypto",
                     options=[
                         {"label": "Bitcoin - BTC", "value": "BTC-USD"},
                         {"label": "Etherium - ETH", "value": "ETH-USD"},
@@ -81,7 +81,7 @@ app.layout = html.Div(
                     step=None,
                     marks={k: value.full_name for k, value in enumerate(PeriodEnum)},
                     value=5,
-                    id="sliderPeriod",
+                    id="slider_period",
                 ),
                 # slider interval
                 html.H6(
@@ -96,14 +96,14 @@ app.layout = html.Div(
                     step=None,
                     marks={k: value.full_name for k, value in enumerate(IntervalEnum)},
                     value=8,
-                    id="sliderInterval",
+                    id="slider_interval",
                 ),
             ]
         ),
         # Graph
         html.Div(
             [
-                dcc.Graph(id="graphCrypto"),
+                dcc.Graph(id="graph_crypto"),
             ]
         ),
     ]
@@ -114,57 +114,57 @@ app.layout = html.Div(
 @app.callback(
     [
         Output(
-            component_id="graphLive",
+            component_id="graph_live",
             component_property="figure",
         ),
         Output(
-            component_id="graphCrypto",
+            component_id="graph_crypto",
             component_property="figure",
         ),
     ],
     [
         Input(
-            component_id="intervalComponent",
+            component_id="interval_component",
             component_property="n_intervals",
         ),
         Input(
-            component_id="dropdownCrypto",
+            component_id="dropdown_crypto",
             component_property="value",
         ),
         Input(
-            component_id="sliderPeriod",
+            component_id="slider_period",
             component_property="value",
         ),
         Input(
-            component_id="sliderInterval",
+            component_id="slider_interval",
             component_property="value",
         ),
     ],
 )
 # The function argument refers to the input
 def update_graph(
-    intervalComponent,
-    dropdownCrypto,
-    sliderPeriod,
-    sliderInterval,
+    interval_component,
+    dropdown_crypto,
+    slider_period,
+    slider_interval,
 ):
     """Return crypto graph.
 
     Args:
-        intervalComponent: The time that determines how quickly the page
+        interval_component: The time that determines how quickly the page
         will refresh.
-        dropdownCrypto: Input on dropdown.
-        sliderPeriod: Chosen period historical graph.
-        sliderInterval: Chosen interval historical graph.
+        dropdown_crypto: Input on dropdown.
+        slider_period: Chosen period historical graph.
+        slider_interval: Chosen interval historical graph.
     """
 
-    actualPrice.GetCurrentData()
+    actual_price.get_current_data()
 
-    figureCryptoLive = go.Figure(
+    figure_crypto_live = go.Figure(
         data=[
             go.Scatter(
-                x=actualPrice.btc_current_Frame["time"],
-                y=actualPrice.btc_current_Frame["value"],
+                x=actual_price.btc_current_Frame["time"],
+                y=actual_price.btc_current_Frame["value"],
                 mode="lines+markers",
                 line=dict(
                     color="green",
@@ -174,7 +174,7 @@ def update_graph(
         ]
     )
 
-    figureCryptoLive.update_layout(
+    figure_crypto_live.update_layout(
         # Add titles
         title="BTC live updates every 10s",
         yaxis_title="Price (US Dollars)",
@@ -184,27 +184,27 @@ def update_graph(
     ####################
 
     short_period = {k: value.short_name for k, value in enumerate(PeriodEnum)}
-    chose_period = short_period[sliderPeriod]
+    chose_period = short_period[slider_period]
     short_interval = {k: value.short_name for k, value in enumerate(IntervalEnum)}
-    chose_interval = short_interval[sliderInterval]
+    chose_interval = short_interval[slider_interval]
 
-    historicalCryptoFrame = DataMonitor().GetHistoricalData(
-        crypto=dropdownCrypto, period=chose_period, interval=chose_interval
+    historical_crypto_frame = DataMonitor().get_historical_data(
+        crypto=dropdown_crypto, period=chose_period, interval=chose_interval
     )
 
-    figureCryptoEvolution = go.Figure(
+    figure_crypto_evolution = go.Figure(
         data=[
             go.Candlestick(
-                x=historicalCryptoFrame.index,
-                open=historicalCryptoFrame["Open"],
-                high=historicalCryptoFrame["High"],
-                low=historicalCryptoFrame["Low"],
-                close=historicalCryptoFrame["Close"],
+                x=historical_crypto_frame.index,
+                open=historical_crypto_frame["Open"],
+                high=historical_crypto_frame["High"],
+                low=historical_crypto_frame["Low"],
+                close=historical_crypto_frame["Close"],
             ),
         ]
     )
 
-    figureCryptoEvolution.update_layout(
+    figure_crypto_evolution.update_layout(
         # Add titles
         title="Crypto price evolution",
         yaxis_title="Price (US Dollars)",
@@ -212,7 +212,7 @@ def update_graph(
     )
 
     # X-Axes
-    figureCryptoEvolution.update_xaxes(
+    figure_crypto_evolution.update_xaxes(
         # removing rangeslider
         rangeslider_visible=False,
         rangeselector=dict(
@@ -235,7 +235,7 @@ def update_graph(
             )
         ),
     )
-    return figureCryptoLive, figureCryptoEvolution
+    return figure_crypto_live, figure_crypto_evolution
 
 
 if __name__ == "__main__":

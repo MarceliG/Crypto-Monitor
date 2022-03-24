@@ -26,7 +26,7 @@ class DataMonitor:
         """Initialize."""
         self.btc_current_Frame = pd.DataFrame({"time": [], "value": []})
 
-    def GetHistoricalData(self, crypto="BTC-USD", period="max", interval="1d"):
+    def get_historical_data(self, crypto="BTC-USD", period="max", interval="1d"):
         """Get Historical crypto data.
 
         Args:
@@ -39,27 +39,25 @@ class DataMonitor:
             cryptoFrame: dataFrame.
 
         """
-        allData = yf.download(
+        all_data = yf.download(
             tickers=crypto,
             period=period,
             interval=interval,
         )
 
-        # self.addMovingAverages(20, 5)
+        return all_data
 
-        return allData
-
-    def addMovingAverages(self, dataFrame, *movingAverages: int):
+    def add_moving_averages(self, dataFrame, *moving_averages: int):
         """Add to dataFrame new column with moving average."""
 
-        for average in movingAverages:
-            self.allData["MA" + str(average)] = (
-                self.allData["Close"].rolling(window=average).mean()
+        for average in moving_averages:
+            self.all_data["MA" + str(average)] = (
+                self.all_data["Close"].rolling(window=average).mean()
             )
         # data["MA20"] = data["Close"].rolling(window=20).mean()
         # data["MA5"] = data["Close"].rolling(window=5).mean()
 
-    def GetCurrentData(self):
+    def get_current_data(self):
         """Return frame with 2 columns, date and value.
 
         Returns:
@@ -68,8 +66,8 @@ class DataMonitor:
 
         new_row = pd.Series(
             data={
-                "time": self.GetActualTime(),
-                "value": self.GetActualPrice(),
+                "time": self.get_actual_time(),
+                "value": self.get_actual_price(),
             }
         )
         self.btc_current_Frame = self.btc_current_Frame.append(
@@ -78,7 +76,7 @@ class DataMonitor:
         )
         return self.btc_current_Frame
 
-    def GetActualPrice(self):
+    def get_actual_price(self):
         """Return actual price.
 
         Returns:
@@ -92,7 +90,7 @@ class DataMonitor:
         # pprint.pprint(json.loads(response.text)['data'])
         return json.loads(response.text)["data"]["1"]["quote"]["USD"]["price"]
 
-    def GetActualTime(self):
+    def get_actual_time(self):
         """Return actual time.
 
         Returns:

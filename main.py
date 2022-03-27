@@ -17,25 +17,28 @@ app.title = "Crypto Monitor"
 app.layout = html.Div(
     [
         # title
-        html.H1(
-            "Crypto Monitor",
-            style={
-                "color": "green",
-                "fontSize": 40,
-                "textAlign": "center",
-            },
+        html.Div(
+            [
+                html.H1(
+                    "Crypto Monitor",
+                    style={
+                        "color": "green",
+                        "fontSize": 40,
+                        "textAlign": "center",
+                    },
+                ),
+                html.P(
+                    "My first Dash app",
+                    style={
+                        "textAlign": "center",
+                    },
+                ),
+            ],
+            style={"padding": "30px", "backgroundColor": "#ebac3d"},
         ),
         #######
         html.Div(
             [
-                html.H6(
-                    "Live Bitcoin graph",
-                    style={
-                        "color": "black",
-                        "fontSize": 20,
-                        "textAlign": "left",
-                    },
-                ),
                 dcc.Graph(id="graph_live"),
                 dcc.Interval(
                     id="interval_component",
@@ -176,7 +179,7 @@ def update_graph(
 
     figure_crypto_live.update_layout(
         # Add titles
-        title="BTC live updates every 10s",
+        title="Live Bitcoin(BTC) graph updates every 10s",
         yaxis_title="Price (US Dollars)",
         xaxis_title="time",
         autosize=True,

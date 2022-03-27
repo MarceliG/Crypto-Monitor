@@ -9,6 +9,7 @@ from dash.dependencies import Input, Output
 
 # Graph
 import plotly.graph_objs as go
+from plotly.subplots import make_subplots
 
 actual_price = DataMonitor()
 
@@ -160,7 +161,6 @@ def update_graph(
         slider_period: Chosen period historical graph.
         slider_interval: Chosen interval historical graph.
     """
-
     actual_price.get_current_data()
 
     figure_crypto_live = go.Figure(
@@ -194,50 +194,147 @@ def update_graph(
     historical_crypto_frame = DataMonitor().get_historical_data(
         crypto=dropdown_crypto, period=chose_period, interval=chose_interval
     )
+    macd = DataMonitor().get_MACD(historical_crypto_frame)
+    stochastic = DataMonitor().get_stochastic(historical_crypto_frame)
 
-    figure_crypto_evolution = go.Figure(
-        data=[
-            go.Candlestick(
-                x=historical_crypto_frame.index,
-                open=historical_crypto_frame["Open"],
-                high=historical_crypto_frame["High"],
-                low=historical_crypto_frame["Low"],
-                close=historical_crypto_frame["Close"],
-            ),
-        ]
+    figure_crypto_evolution = make_subplots(
+        rows=4,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.01,
+        row_heights=[0.5, 0.1, 0.2, 0.2],
     )
 
+    figure_crypto_evolution.append_trace(
+        go.Candlestick(
+            x=historical_crypto_frame.index,
+            open=historical_crypto_frame["Open"],
+            high=historical_crypto_frame["High"],
+            low=historical_crypto_frame["Low"],
+            close=historical_crypto_frame["Close"],
+            showlegend=False,
+        ),
+        row=1,
+        col=1,
+    )
+
+    figure_crypto_evolution.add_trace(
+        go.Scatter(
+            x=historical_crypto_frame.index,
+            y=historical_crypto_frame["MA20"],
+            opacity=0.5,
+            line=dict(color="blue", width=2),
+            name="Moving Average 20",
+        ),
+        row=1,
+        col=1,
+    )
+    figure_crypto_evolution.add_trace(
+        go.Scatter(
+            x=historical_crypto_frame.index,
+            y=historical_crypto_frame["MA5"],
+            opacity=0.5,
+            line=dict(color="orange", width=2),
+            name="Moving Average 5",
+        ),
+        row=1,
+        col=1,
+    )
+
+    colorsVolume = [
+        "green" if row["Open"] - row["Close"] >= 0 else "red"
+        for index, row in historical_crypto_frame.iterrows()
+    ]
+    figure_crypto_evolution.add_trace(
+        go.Bar(
+            x=historical_crypto_frame.index,
+            y=historical_crypto_frame["Volume"],
+            marker_color=colorsVolume,
+        ),
+        row=2,
+        col=1,
+    )
+
+    colorsMCDA = ["green" if val >= 0 else "red" for val in macd.macd_diff()]
+    # Plot MACD trace on 3rd row
+    figure_crypto_evolution.add_trace(
+        go.Bar(
+            x=historical_crypto_frame.index,
+            y=macd.macd_diff(),
+            marker_color=colorsMCDA,
+        ),
+        row=3,
+        col=1,
+    )
+    figure_crypto_evolution.add_trace(
+        go.Scatter(
+            x=historical_crypto_frame.index,
+            y=macd.macd(),
+            line=dict(color="black", width=2),
+        ),
+        row=3,
+        col=1,
+    )
+    figure_crypto_evolution.add_trace(
+        go.Scatter(
+            x=historical_crypto_frame.index,
+            y=macd.macd_signal(),
+            line=dict(color="blue", width=1),
+        ),
+        row=3,
+        col=1,
+    )
+    # Plot stochastics trace on 4th row
+    figure_crypto_evolution.add_trace(
+        go.Scatter(
+            x=historical_crypto_frame.index,
+            y=stochastic.stoch(),
+            line=dict(color="black", width=2),
+        ),
+        row=4,
+        col=1,
+    )
+    figure_crypto_evolution.add_trace(
+        go.Scatter(
+            x=historical_crypto_frame.index,
+            y=stochastic.stoch_signal(),
+            line=dict(color="blue", width=1),
+        ),
+        row=4,
+        col=1,
+    )
+    # update layout by changing the plot size, hiding legends & rangeslider, and removing gaps between dates
     figure_crypto_evolution.update_layout(
-        # Add titles
+        height=900,
+        width=1200,
+        showlegend=False,
+        xaxis_rangeslider_visible=False,
+    )
+
+    # Add titles
+    figure_crypto_evolution.update_layout(
         title="Crypto price evolution",
         yaxis_title="Price (US Dollars)",
-        xaxis_title="date",
     )
 
-    # X-Axes
-    figure_crypto_evolution.update_xaxes(
-        # removing rangeslider
-        rangeslider_visible=False,
-        rangeselector=dict(
-            buttons=list(
-                [
-                    dict(
-                        count=1,
-                        label="1 month",
-                        step="month",
-                        stepmode="backward",
-                    ),
-                    dict(
-                        count=1,
-                        label="1 year",
-                        step="year",
-                        stepmode="backward",
-                    ),
-                    dict(step="all"),
-                ]
-            )
-        ),
+    # update y-axis label
+    figure_crypto_evolution.update_yaxes(title_text="Price", row=1, col=1)
+    figure_crypto_evolution.update_yaxes(title_text="Volume", row=2, col=1)
+    figure_crypto_evolution.update_yaxes(
+        title_text="MACD", showgrid=False, row=3, col=1
     )
+    figure_crypto_evolution.update_yaxes(title_text="Stoch", row=4, col=1)
+
+    # # removing white space
+    # figure_crypto_evolution.update_layout(
+    #     margin=go.layout.Margin(
+    #         l=100,  # left margin
+    #         r=100,  # right margin
+    #         b=100,  # bottom margin
+    #         t=100,  # top margin
+    #     )
+    # )
+
     return figure_crypto_live, figure_crypto_evolution
 
 

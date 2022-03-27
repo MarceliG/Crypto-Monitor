@@ -9,16 +9,12 @@ from requests import Session
 import json
 import time
 
+from ta.trend import MACD
+from ta.momentum import StochasticOscillator
+
 # Format data
 import pandas as pd
 
-# URL = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest"
-
-# PARAMETERS = {"slug": "bitcoin", "convert": "USD"}
-# HEDERS = {
-#     "Accepts": "application/json",
-#     "X-CMC_PRO_API_KEY": "8a6e024e-4ad6-4ed6-a43e-0bf97b6327cf",
-# }
 coin_market = CoinMarket()
 
 
@@ -28,6 +24,7 @@ class DataMonitor:
     def __init__(self):
         """Initialize."""
         self.btc_current_Frame = pd.DataFrame({"time": [], "value": []})
+        self.all_data: pd.core.frame.DataFrame
 
     def get_historical_data(self, crypto="BTC-USD", period="max", interval="1d"):
         """Get Historical crypto data.
@@ -42,13 +39,17 @@ class DataMonitor:
             cryptoFrame: dataFrame.
 
         """
-        all_data = yf.download(
+        self.all_data = yf.download(
             tickers=crypto,
             period=period,
             interval=interval,
         )
 
-        return all_data
+        # TODO use method bellow.
+        self.all_data["MA20"] = self.all_data["Close"].rolling(window=20).mean()
+        self.all_data["MA5"] = self.all_data["Close"].rolling(window=5).mean()
+
+        return self.all_data
 
     def add_moving_averages(self, dataFrame, *moving_averages: int):
         """Add to dataFrame new column with moving average."""
@@ -57,8 +58,42 @@ class DataMonitor:
             self.all_data["MA" + str(average)] = (
                 self.all_data["Close"].rolling(window=average).mean()
             )
-        # data["MA20"] = data["Close"].rolling(window=20).mean()
-        # data["MA5"] = data["Close"].rolling(window=5).mean()
+
+    def get_MACD(self, dataFrame):
+        """Create frame as Moving Average Convergence / Divergence (MACD).
+
+        Args:
+            dataFrame : frame
+
+        Returns:
+            return MACD.
+        """
+        macd = MACD(
+            close=dataFrame["Close"],
+            window_slow=26,
+            window_fast=12,
+            window_sign=9,
+        )
+        return macd
+
+    def get_stochastic(self, dataFrame):
+        """Crate frame as stochastic.
+
+        Args:
+            dataFrame: frame
+
+        Returns:
+            Stochastic.
+        """
+        stoch = StochasticOscillator(
+            high=dataFrame["High"],
+            close=dataFrame["Close"],
+            low=dataFrame["Low"],
+            window=14,
+            smooth_window=3,
+        )
+
+        return stoch
 
     def get_current_data(self):
         """Return frame with 2 columns, date and value.

@@ -2,11 +2,14 @@ What the application has now:
     - Live graph with BTC value, refreshing on specified time.
     - Historical graph with few crypto values, can be chosen on the dropdown.
     - The historical graph has 2 slides. Can chosen period and interval.
-
+    - Added moving average.
+    - Multiple subplot.
+    - Plot with Moving Average Convergence / Divergence (MACD)
+    - Plot Stochastic
 
 In the future app will has:
-    - 2 or more moving average (multiple subplot).
-
+    
+    - Download once historical_crypto_frame and sliders will zoom graph.
     - To do a fake wallet and abillity to buy/sell crypto. 
     - To do dataFrame with tranzaction
 
